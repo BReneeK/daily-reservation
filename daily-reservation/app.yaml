@@ -1,0 +1,32 @@
+application: daily-reservation
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
+
+- url: /calendar\.*
+  static_files: template.htm
+  upload: template\.htm
+
+- url: /addevent\.*
+  static_files: addEvent.htm
+  upload: addEvent\.htm
+
+- url: /default\.css
+  static_files: default.css
+  upload: default\.css
+
+- url: /img/*
+  static_dir: img
+
+- url: .*
+  script: main.app
+
+libraries:
+- name: webapp2
+  version: "2.5.2"

@@ -1,0 +1,75 @@
+body  {
+	background-color:	#ffffff;
+	color:	#000000;
+	font-family:	"Arial CE", "Helvetica CE", Arial, helvetica, sans-serif;
+	width:100%;
+ } 
+ .slide {
+	background-color:#eeeeee;
+	font-weight:bold;
+	font-size:1em;
+	cursor:pointer;
+}
+.calendars{
+	background-color:white;
+ }
+.empty{
+	background-color:#ffffff;
+}
+.Tform{
+	width:100%;
+}
+.selectableDay{
+	text-align: center;
+	cursor: pointer;
+}
+.selectedDay{
+	text-align: center;
+	background-color:#ff7400;
+	cursor: pointer;
+}
+.occupiedDay{
+	text-align: center;
+	background-color:#dddddd;
+	COLOR:#bbbbbb;
+}
+.month{
+	float:left;
+	height:150px;
+	width:270px;
+}
+.month th tr{
+	text-align:center;
+}
+.SuSa{
+	background-color:orange;
+	color:red;
+}
+.weekday{
+	background-color:orange;
+}
+.form_error{
+	color:red;
+}
+.form_response{
+	margin:auto;
+	width:80%;
+	height:80%;
+	background-color:	#b4eeff;
+	vertical-align:middle;
+}
+
+table td  {
+	background-color:	#b4eeff;
+	color:	black;
+	padding:	0 10px 0 10px;
+	text-align:	center;
+	font-size:	12px;
+ }
+table tr  {
+	background-color:	#b4eeff;
+	color:	black;
+	padding:	0 10px 0 10px;
+	text-align:	center;
+	font-size:	12px;
+} 

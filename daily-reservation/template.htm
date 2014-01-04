@@ -1,0 +1,255 @@
+﻿<html><head>
+<meta http-equiv="Content-Language" content="en" />
+<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'></script>
+</head>
+<body>
+<div id="calendar_form">
+<table><tr><td class="slide" onClick="javascript:prevMonth();">&lt;</td><td class="calendars"><div id="calendar">Loading</div></td><td class="slide" onClick="javascript:nextMonth();">&gt;</td></tr>
+<tr><td class="empty"></td><td class="empty">
+<form action="" method="post" id="contactform">
+<input type="hidden" id="dateRange" name="dateRange" value="0">
+<input type="hidden" id="key" name="key" value="">
+<table class="Tform">
+<tr id="summary-row"><th colspan="2" id="summary"></th></tr>
+<tr><td>Name</td><td><input id="name" size="51" name="name" type="text" placeholder="Your name"><span class="form_error"><br>Please enter your name</span></td></tr>
+<tr><td>Email</td><td><input id="email" size="51" name="email" type="text" placeholder="Your email"><span class="form_error"><br>Please enter your email</span><span class="form_error" id="invalid_email"><br>This email is not valid</span></td></tr>
+<tr><td>Tel</td><td><input id="phone" size="51" name="phone" type="text" placeholder="Phone number"><span class="form_error"><br>Please enter your phone number</span></td></tr>
+<tr><td>Message</td><td><textarea id="comment" name="comment" placeholder="Leave us message" rows="4" cols="40"></textarea></td></tr>
+<tr><td></td><td><input id="submit" name="submit" value="Submit order" type="submit"></td></tr>
+</table>
+</form>
+</td><td class="empty"></td></tr>
+</table>
+</div>
+<div id="success" class="form_response"></div>
+<div align="right" style="font-size:8px;"><a href="http://daily-reservation.appspot.com" target="_blank" title="Free daily reservation system based on google calendar">by Free Daily Reservation</a></div>
+<script>
+var params = window.location.href.split('?')[1].split("|");
+var offset = 0;
+var html = "";
+var oneDayMS = 86400000; // one day in miliseconds
+var oneHourMS = 3600000; // one hour in miliseconds
+
+// params[key, calendar, arival(h), departure(h), price_per_day, currency, css(url)] <=> self URL arguments;
+
+// set CSS
+var cssLink = document.createElement("link");
+cssLink.setAttribute("rel", "stylesheet");
+cssLink.setAttribute("type", "text/css");
+cssLink.setAttribute("href", params[6].length>0?params[6]:"\default.css");
+document.getElementsByTagName("head").item(0).appendChild(cssLink);
+// end set CSS
+// setup calendar
+$("#key").val(params[0]);
+var arival = params[2];
+var departure = params[3];
+var arivalOffset = arival * oneHourMS;
+var departureOffset = departure * oneHourMS
+var price_per_day = Number(params[4]);
+var currency = params[5];
+var today = new Date();
+var todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()); //today date 0:00
+var startDate = new Date(today.getFullYear(), today.getMonth(), 1);//1st this month 0:00 - will be used as iterator
+var endDate = new Date(today.getFullYear()+1, today.getMonth(), 1);//1st this month, next year 0:00
+endDate.setDate(endDate.getDate()-1); // set ned date to last day of month one year ahead
+var selectedDateMin = 0; // range selection min
+var selectedDateMax = 0;// range selection max
+var loaded = false;
+
+var calendar_json_url = 'http://www.google.com/calendar/feeds/' + params[1] + '/public/free-busy?orderby=starttime&sortorder=ascending&futureevents=true&alt=json';
+//console.log(calendar_json_url); // google calendar JSON feed URL
+
+var months = new Array("Jan","Feb","Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov" ,"Dec");
+var noCloseMonth = true;
+while (endDate>startDate){
+	var day = startDate.getDate();
+	var dayOfWeek = startDate.getDay()<1 ? 6 : startDate.getDay()-1;
+	
+	if (day == 1){
+		var month = startDate.getMonth();
+		var year = startDate.getFullYear();
+		if(noCloseMonth){
+			noCloseMonth = false;
+		}else{
+			html +="</tr></table></div>";
+		}
+		offset++;
+		html +='<div class="month" id="month-' + offset + '"><table><tr><th colspan="7">'+months[month]+' '+year+'</th></tr><tr><td class="weekday">Mo</td><td class="weekday">Tu</td><td class="weekday">We</td><td class="weekday">Th</td><td class="weekday">Fr</td><td class="SuSa">Sa</td><td class="SuSa">Su</td></tr><tr>';
+		for(var i=0;i<dayOfWeek;i++){
+				html += '<td class="occupiedDay"></td>'
+		}
+	}
+	if(startDate.getTime()>todayDate.getTime()){
+		html += '<td id="date-'+(startDate.getTime()+arivalOffset)+'" onClick="javascript:selectDay(this);" class="selectableDay">'+day+'</td>';
+	}else{
+		html += '<td class="occupiedDay">'+day+'</td>';
+	}
+	
+	if (dayOfWeek == 6){
+		html += '</tr><tr>';
+	}
+	
+	startDate.setDate(startDate.getDate()+1);
+}
+html += '</tr></table></div>';
+document.getElementById('calendar').innerHTML = html;
+// reset offset to first month and hide later months
+offset = 1;
+for(var i=3;i<13;i++){
+	var pom = $("#month-"+i);
+	pom.hide();
+}
+// JSON start
+$.getJSON(calendar_json_url, function(data){
+	try {
+		$.each(data.feed.entry, function(i, item){
+			var pom = item.gd$when[0].startTime.substring(0,10).split("-");
+			var baseTime = new Date(pom[0], pom[1]-1, pom[2], 0, 0).getTime() + arivalOffset;
+			var pom = item.gd$when[0].endTime.substring(0,10).split("-");
+			var endTime = new Date(pom[0], pom[1]-1, pom[2], 0, 0).getTime() + departureOffset;
+			while(baseTime<endTime){
+				var pom = $("#date-"+baseTime);
+				pom.replaceWith('<td class="occupiedDay">'+pom.text()+'</td>');
+				baseTime+=oneDayMS;
+			}
+		});
+	} catch (e){
+	}
+	loaded = true;
+});
+// form checker
+$(document).ready(function(){
+	$('.form_error').hide();
+	$('#success').hide();
+	displaySummary();
+	$('#submit').click(function(){
+		$('.form_error').hide();
+		var name = $('#name').val();
+		var email = $('#email').val();
+		var phone = $('#phone').val();
+		var comment = $('#comment').val();
+		var dateRange = $('#dateRange').val();
+		if(name== ''){
+			$('#name').next().show();
+			return false;
+		}
+		if(email== ''){
+			$('#email').next().show();
+			return false;
+		}
+		if(IsEmail(email)==false){
+			$('#invalid_email').show();
+			return false;
+		}
+		if(phone== ''){
+		    $('#phone').next().show();
+		    return false;
+		}
+		if(dateRange== '0'){
+			$('#summary_row').show();
+			$('#summary').html('<span class="form_error">Please select dates</span>');
+			return false;
+		}else{
+			displaySummary();
+		}
+		//ajax call form
+		$.post("./submitOrder", $("#contactform").serialize(), function(response) {
+		$('#calendar_form').fadeOut('slow',function(){
+			$('#success').html(response);
+			$('#success').fadeIn('slow');
+			});
+		 });
+		 return false;
+		});
+	});
+// functions
+function IsEmail(email) {
+	var regex = /^([a-zA-Z0-9_\.\-\+])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+	if(!regex.test(email)) {
+		return false;
+	}else{
+		return true;
+	}
+}
+
+function selectDay(td){
+	if(loaded){
+		var myDate = parseInt(td.id.substring(5));
+		if(selectedDateMin == 0){
+			setSelection(myDate, myDate);
+		}else if(selectedDateMin==myDate){
+			setSelection(todayDate.getTime(), todayDate.getTime());
+			selectedDateMin = 0;
+			selectedDateMax = 0;
+			$("#dateRange").val('0');
+		}else if(selectedDateMin>myDate){
+			setSelection(myDate, selectedDateMax > 0 ? selectedDateMax : myDate);
+		}else{
+			setSelection(selectedDateMin, myDate);
+			if(myDate>selectedDateMax){
+				setSelection(myDate, myDate);
+			}
+		}
+	}
+}
+function setSelection(min, max){
+	$('.selectedDay').removeClass("selectedDay").addClass("selectableDay");
+	selectedDateMin = min;
+	selectedDateMax = max;
+	for(var i=min; i<=max+oneHourMS; i+=oneDayMS){
+		try{
+			document.getElementById("date-"+i).className = "selectedDay";
+		}catch(err){
+			try{
+				document.getElementById("date-"+(i+oneHourMS)).className = "selectedDay";
+				i+=oneHourMS;
+			}catch(err){
+				try{
+					document.getElementById("date-"+(i-oneHourMS)).className = "selectedDay";
+					i-=oneHourMS;
+				}catch(err){
+					selectedDateMax = i-oneDayMS;
+					while(i<=max){
+						$("#date-"+i).removeClass("selectedDay").addClass("selectableDay");
+						i+=oneDayMS;
+					}
+					break;
+				}
+			}
+		}
+	}
+	$("#dateRange").val((new Date(selectedDateMin).toISOString()+"/"+new Date(selectedDateMax+oneDayMS-arivalOffset+departureOffset).toISOString()).replace("-","").replace("-","").replace("-","").replace("-","").replace(":","").replace(":","").replace(":","").replace(":","").replace(".000","").replace(".000",""));
+	displaySummary();
+}
+function nextMonth(){
+	if(offset<11){
+		var pom = $("#month-"+offset);
+		pom.hide();
+		var pom = $("#month-"+(offset+2));
+		pom.show();
+		offset++;
+	}
+}
+function prevMonth(){
+	if(offset>1){
+		var pom = $("#month-"+(offset+1));
+		pom.hide();
+		var pom = $("#month-"+(offset-1));
+		pom.show();
+		offset--;
+	}
+}
+function displaySummary(){
+	if(isNaN(price_per_day)){
+		$('#summary_row').hide();
+	}else if(selectedDateMin <= todayDate.getTime()){
+		$('#summary').html("Please select dates. Price is " + price_per_day + " " + currency + " / day" );
+	}else{
+		var days = Math.round((selectedDateMax - selectedDateMin)/oneDayMS+1);
+		$('#summary').html((new Date(selectedDateMin).toISOString().substring(0,10)) + " " + arival + ":00  -  " + (new Date(selectedDateMax+oneDayMS).toISOString().substring(0,10)) + " " + departure + ":00 = " + days + " days = " + Number(days*price_per_day) + " " + currency);
+
+	}
+}
+</script>
+</body>
+</html>
