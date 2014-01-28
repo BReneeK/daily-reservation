@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# Author: Lukas Kisza
-# Credits: stackoverflow.com, Github
 #
 from google.appengine.api import users
 from google.appengine.api import mail
@@ -90,13 +88,13 @@ class LoginHandler(webapp2.RequestHandler):
 			<li>Once someone submit your calendar reservation, you will receive email with summary information and direct confirmation link to your calendar</li>
 			</ol>
 			<p><img src="./img/publish_public_calendar.jpg"></p>
-			<h2>Credits</h2>
-			<p>Author: Lukas Kisza (kiszal@gmail.com) - <a href="http://www.lee.sk">LEE.sk</a></p>
-			<p>Special thanks to: <a href="http://http://stackoverflow.com/">stackoverflow.com</a> and Google</p>
-			<p>Download sources and participate at: <a href="https://github.com/lee-sk/daily-reservation/">https://github.com/lee-sk/daily-reservation</a></p>
+			<h2>License</h2>
+			<p>Project is licensed under <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank">Creative commons license</a></p>
+			<p>Author Lukas Kisza (kiszal@gmail.com) - <a href="http://www.lee.sk">LEE.sk</a></p>
 			<h2>Bugs and things to do:</h2>
 			<ul>
 			<li>Add CAPTCHA to avoid SPAM (currently not needed)</li>
+			<li>Create GIT project</li>
 			<li>Add languages</li>
 			<li>...any other ideas? Do not hesitate to contact me</li>
 			</ul>
