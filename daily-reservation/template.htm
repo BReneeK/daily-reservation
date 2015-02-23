@@ -52,14 +52,23 @@ var todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
 var startDate = new Date(today.getFullYear(), today.getMonth(), 1);//1st this month 0:00 - will be used as iterator
 var endDate = new Date(today.getFullYear()+1, today.getMonth(), 1);//1st this month, next year 0:00
 endDate.setDate(endDate.getDate()-1); // set ned date to last day of month one year ahead
+
 var selectedDateMin = 0; // range selection min
 var selectedDateMax = 0;// range selection max
 var loaded = false;
 
-var calendar_json_url = 'http://www.google.com/calendar/feeds/' + params[1] + '/public/free-busy?orderby=starttime&sortorder=ascending&futureevents=true&alt=json';
+var calendar_json_url = 'https://www.googleapis.com/calendar/v3/calendars/' + params[1] + '/events?key=AIzaSyBtorr5JI9wOsdL-oXxSX4JAQ073lFXNE8&timeMin='+ ISODateString(startDate) + '&alt=json&timeZone=UTC';
 //console.log(calendar_json_url); // google calendar JSON feed URL
-
-var months = new Array("Jan","Feb","Mar","Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov" ,"Dec");
+function ISODateString(d){
+ function pad(n){return n<10 ? '0'+n : n}
+ return d.getUTCFullYear()+'-'
+      + pad(d.getUTCMonth()+1)+'-'
+      + pad(d.getUTCDate())+'T'
+      + pad(d.getUTCHours())+':'
+      + pad(d.getUTCMinutes())+':'
+      + pad(d.getUTCSeconds())+'Z'
+}
+var months = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov" ,"Dec");
 var noCloseMonth = true;
 while (endDate>startDate){
 	var day = startDate.getDate();
@@ -80,7 +89,7 @@ while (endDate>startDate){
 		}
 	}
 	if(startDate.getTime()>todayDate.getTime()){
-		html += '<td id="date-'+(startDate.getTime()+arivalOffset)+'" onClick="javascript:selectDay(this);" class="selectableDay">'+day+'</td>';
+		html += '<td id="date-'+(startDate.getTime() - (startDate.getTimezoneOffset() * 60000))+'" onClick="javascript:selectDay(this);" class="selectableDay">'+day+'</td>';
 	}else{
 		html += '<td class="occupiedDay">'+day+'</td>';
 	}
@@ -101,20 +110,19 @@ for(var i=3;i<13;i++){
 }
 // JSON start
 $.getJSON(calendar_json_url, function(data){
-	try {
-		$.each(data.feed.entry, function(i, item){
-			var pom = item.gd$when[0].startTime.substring(0,10).split("-");
-			var baseTime = new Date(pom[0], pom[1]-1, pom[2], 0, 0).getTime() + arivalOffset;
-			var pom = item.gd$when[0].endTime.substring(0,10).split("-");
-			var endTime = new Date(pom[0], pom[1]-1, pom[2], 0, 0).getTime() + departureOffset;
-			while(baseTime<endTime){
+	//console.log(data);
+	$.each(data.items, function(i, item){
+		var baseTime = new Date(item.start.dateTime.substr(0,10)).getTime();
+		var endTime = new Date(item.end.dateTime.substr(0,10)).getTime();
+		while(baseTime<endTime){
+			try {
 				var pom = $("#date-"+baseTime);
 				pom.replaceWith('<td class="occupiedDay">'+pom.text()+'</td>');
 				baseTime+=oneDayMS;
+			} catch (e){
 			}
-		});
-	} catch (e){
-	}
+		}
+	});
 	loaded = true;
 });
 // form checker
@@ -175,6 +183,7 @@ function IsEmail(email) {
 function selectDay(td){
 	if(loaded){
 		var myDate = parseInt(td.id.substring(5));
+		console.log(td.id);
 		if(selectedDateMin == 0){
 			setSelection(myDate, myDate);
 		}else if(selectedDateMin==myDate){

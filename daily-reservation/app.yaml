@@ -13,6 +13,10 @@ handlers:
   static_files: template.htm
   upload: template\.htm
 
+- url: /hourly\.*
+  static_files: template-hourly.htm
+  upload: template-hourly\.htm
+
 - url: /addevent\.*
   static_files: addEvent.htm
   upload: addEvent\.htm

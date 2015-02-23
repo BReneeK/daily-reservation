@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# Author: Lukas Kisza
-# Credits: stackoverflow.com, Github
 #
 from google.appengine.api import users
 from google.appengine.api import mail
@@ -23,7 +21,6 @@ import webapp2
 import time
 import urllib
 
-testCalendar = 'lcdh8ftqlonl8m0h8u7uiqomjg@group.calendar.google.com'
 class UserPrefs(db.Model):
 	userid = db.StringProperty()
 	email = db.StringProperty()
@@ -64,8 +61,8 @@ class LoginHandler(webapp2.RequestHandler):
 				<tr><td>Calendar ID</td><td><input type="text" size="60" name="calendar" placeholder="calendar-ID@group.calendar.google.com"></td></tr>
 				<tr><td>Guest have to leave before</td><td><select name="departure"><option>6</option><option>7</option><option>8</option><option>9</option><option selected>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option></select>(next day hour)</td></tr>
 				<tr><td>Acccomodation start</td><td><select name="arival"><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option selected>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option></select>(hour)</td></tr>
-				<tr><td>Price pre day</td><td><input type="text" size="5" name="name" placeholder="0 = none"></td></tr>
-				<tr><td>Currency</td><td><input type="text" size="5" name="name" value="EUR"></td></tr>
+				<tr><td>Price per day</td><td><input type="text" size="5" name="price_per_day" placeholder="0 = none"></td></tr>
+				<tr><td>Currency</td><td><input type="text" size="5" name="currency" value="EUR"></td></tr>
 				<tr><td>Design CSS URL</td><td><input type="text" size="40" name="cssURL" placeholder="http://link_to_custom.css leave blank for default"> * If defined, <a href="/default.css">default.css</a> will be replaced</td></tr>
 				<tr><td colspan="2"><input type="submit" value="Add"></td></tr>
 				</table></form>""")
@@ -92,7 +89,7 @@ class LoginHandler(webapp2.RequestHandler):
 			<p><img src="./img/publish_public_calendar.jpg"></p>
 			<h2>Credits</h2>
 			<p>Author: Lukas Kisza (kiszal@gmail.com) - <a href="http://www.lee.sk">LEE.sk</a></p>
-			<p>Special thanks to: <a href="http://http://stackoverflow.com/">stackoverflow.com</a> and Google</p>
+			<p>Special thanks to: <a href="http://stackoverflow.com/">stackoverflow.com</a> and Google</p>
 			<p>Download sources and participate at: <a href="https://github.com/lee-sk/daily-reservation/">https://github.com/lee-sk/daily-reservation</a></p>
 			<h2>Bugs and things to do:</h2>
 			<ul>
@@ -107,7 +104,7 @@ class SaveHandler(webapp2.RequestHandler):
 	def post(self):
 		user = users.get_current_user()
 		if user and self.request.get('calendar'):
-			entry = UserPrefs(userid=user.user_id(), email=user.email(), calendar=self.request.get('calendar'), cssURL=self.request.get('cssURL'), name=self.request.get('name'), arival=self.request.get('arival'), departure=self.request.get('departure'))
+			entry = UserPrefs(userid=user.user_id(), email=user.email(), calendar=self.request.get('calendar'), cssURL=self.request.get('cssURL'), name=self.request.get('name'), arival=self.request.get('arival'), departure=self.request.get('departure'), price_per_day=self.request.get('price_per_day'), currency=self.request.get('currency'))
 			entry.put()
 			time.sleep(1)
 		self.redirect('/')
